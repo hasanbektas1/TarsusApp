@@ -1,18 +1,20 @@
 package com.tarsus.tarsusapp
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.tv.material3.ExperimentalTvMaterial3Api
-import androidx.tv.material3.Text
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 import com.tarsus.tarsusapp.ui.theme.TarsusAppTheme
+import android.widget.VideoView
 
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalTvMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -21,11 +23,29 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Hello Tarsus",
-                    )
+                    VideoPlayer()
                 }
             }
+        }
+    }
+
+    @Composable
+    fun VideoPlayer() {
+        val context = LocalContext.current
+        val videoView = AndroidView(factory = {
+            VideoView(context)
+        }, update = {
+            it.apply {
+                setVideoURI(Uri.parse("android.resource://${context.packageName}/${R.raw.ornek}"))
+                start()
+            }
+        })
+
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            videoView
         }
     }
 }
