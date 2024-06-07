@@ -4,76 +4,39 @@ import android.net.Uri
 import android.view.KeyEvent
 import android.widget.VideoView
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 
+
+// Video oynatma
 @Composable
 fun VideoPlayer(videoUri: Uri) {
     val context = LocalContext.current
-
-    val videoView = remember {
+    AndroidView(factory = {
         VideoView(context).apply {
             setVideoURI(videoUri)
-
             setOnCompletionListener {
-                seekTo(0) // Video tamamlandığında başa sar
+                seekTo(0)
             }
-            start() // Videoyu başlat
-        }
-    }
+            start()
 
-    AndroidView(
-        factory = {
-            videoView.apply {
-                setOnKeyListener { v, keyCode, event ->
-                    if (event.action == KeyEvent.ACTION_DOWN) {
-                        when (keyCode) {
-                            KeyEvent.KEYCODE_DPAD_CENTER -> {
-                                if (isPlaying) {
-                                    pause()
-                                } else {
-                                    start()
-                                }
-                                true
-                            }
-                            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                                seekTo(currentPosition + 10000) // 10 saniye ileri sar
-                                true
-                            }
-                            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                                seekTo(currentPosition - 10000) // 10 saniye geri sar
-                                true
-                            }
-                            else -> false
-                        }
-                    } else {
-                        false
-                    }
-                }
-                isFocusable = true
-                isFocusableInTouchMode = true
-                requestFocus()
-            }
-        },
-        update = { view ->
-            view.setOnKeyListener { v, keyCode, event ->
+            setOnKeyListener { v, keyCode, event ->
                 if (event.action == KeyEvent.ACTION_DOWN) {
                     when (keyCode) {
                         KeyEvent.KEYCODE_DPAD_CENTER -> {
-                            if (view.isPlaying) {
-                                view.pause()
+                            if (isPlaying) {
+                                pause()
                             } else {
-                                view.start()
+                                start()
                             }
                             true
                         }
                         KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                            view.seekTo(view.currentPosition + 10000) // 10 saniye ileri sar
+                            seekTo(currentPosition + 10000) // 10 seconds forward
                             true
                         }
                         KeyEvent.KEYCODE_DPAD_LEFT -> {
-                            view.seekTo(view.currentPosition - 10000) // 10 saniye geri sar
+                            seekTo(currentPosition - 10000) // 10 seconds backward
                             true
                         }
                         else -> false
@@ -82,6 +45,10 @@ fun VideoPlayer(videoUri: Uri) {
                     false
                 }
             }
+
+            isFocusable = true
+            isFocusableInTouchMode = true
+            requestFocus()
         }
-    )
+    })
 }

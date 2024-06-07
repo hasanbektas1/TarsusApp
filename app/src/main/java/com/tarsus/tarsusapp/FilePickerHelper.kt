@@ -1,83 +1,68 @@
 package com.tarsus.tarsusapp
 
-import android.app.Activity
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
-import androidx.activity.ComponentActivity
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.BufferedReader
-import java.io.IOException
+import java.io.File
+import java.io.FileInputStream
 import java.io.InputStreamReader
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 
-class FilePickerHelper(private val activity: ComponentActivity) {
+// Cihazdaki Json dosyası içerigini okuma
+class FileReaderHelper(private val filePath: String) {
 
     companion object {
-        private const val TAG = "FilePickerHelper"
-        private const val READ_EXTERNAL_STORAGE_REQUEST = 1
+        private const val TAG = "JSONFileReader"
     }
 
-    private var filePickerLauncher: ActivityResultLauncher<Intent>? = null
+    var videoUri by mutableStateOf<Uri?>(null)
+        private set
 
-    init {
-        filePickerLauncher = activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == Activity.RESULT_OK) {
-                result.data?.data?.also { uri ->
-                    readFileAndPrintToConsole(uri)
-                }
-            }
-        }
-    }
-
-    fun openFilePicker() {
-        if (ContextCompat.checkSelfPermission(activity, android.Manifest.permission.READ_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(activity,
-                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
-                READ_EXTERNAL_STORAGE_REQUEST)
-        } else {
-            launchFilePicker()
-        }
-    }
-
-    private fun launchFilePicker() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "*/*"
-        }
-        filePickerLauncher?.launch(intent)
-    }
-
-    fun readFileAndPrintToConsole(uri: Uri) {
+    fun readVideoPathFromJson(): Boolean {
         try {
-            activity.contentResolver.openInputStream(uri)?.use { inputStream ->
+            val file = File(filePath)
+            if (!file.exists()) {
+                Log.e(TAG, "File does not exist: $filePath")
+                return false
+            }
+
+            FileInputStream(file).use { inputStream ->
                 BufferedReader(InputStreamReader(inputStream)).use { reader ->
+                    val stringBuilder = StringBuilder()
                     var line: String?
                     while (reader.readLine().also { line = it } != null) {
-                        Log.d(TAG, line!!)
-                        println(".cfg içerigi")
-                        println(line)
+                        stringBuilder.append(line)
+                    }
+                    val jsonString = stringBuilder.toString()
+                    val jsonElement = Json.parseToJsonElement(jsonString)
+                    Log.d(TAG, "JSON Content: $jsonString")
+
+                    if (jsonElement is JsonObject) {
+                        val videosArray = jsonElement["videos"]?.jsonArray
+                        if (videosArray != null && videosArray.isNotEmpty()) {
+                            val videoPath = videosArray[0].jsonPrimitive.content
+                            videoUri = Uri.parse(videoPath)
+                            Log.d(TAG, "Video path found: $videoPath")
+                            return true
+                        } else {
+                            Log.e(TAG, "No valid video path found in JSON")
+                            return false
+                        }
+                    } else {
+                        Log.e(TAG, "Invalid JSON format")
+                        return false
                     }
                 }
             }
-        } catch (e: IOException) {
-            Log.e(TAG, "Dosya okunurken hata oluştu", e)
-            Toast.makeText(activity, "Dosya okunurken hata oluştu", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    fun handlePermissionsResult(requestCode: Int, grantResults: IntArray) {
-        if (requestCode == READ_EXTERNAL_STORAGE_REQUEST) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                launchFilePicker()
-            } else {
-                Toast.makeText(activity, "Dosya okuma izni reddedildi", Toast.LENGTH_SHORT).show()
-            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error reading JSON file", e)
+            return false
         }
     }
 }
