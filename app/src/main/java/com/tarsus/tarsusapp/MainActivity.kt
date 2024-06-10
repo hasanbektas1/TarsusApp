@@ -29,6 +29,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Toast.makeText(this, "Hasan Bektaş, Özge Akıncı, Oğuzhan Çotur katkılarıyla", Toast.LENGTH_LONG).show()
+
         jsonFileReader = FileReaderHelper(JSON_FILE_PATH)
 
         setContent {
@@ -68,7 +70,7 @@ class MainActivity : ComponentActivity() {
     }
     // Kumanda Tuşları
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_HOME) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
             return true
         }
         return super.onKeyDown(keyCode, event)
@@ -83,4 +85,5 @@ class MainActivity : ComponentActivity() {
         super.onRestoreInstanceState(savedInstanceState)
         videoPosition = savedInstanceState.getInt(VIDEO_POSITION_KEY, 0)
     }
+
 }
