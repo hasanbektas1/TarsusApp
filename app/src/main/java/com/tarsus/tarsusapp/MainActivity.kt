@@ -20,10 +20,12 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val REQUEST_CODE_PERMISSION = 1
-        private const val JSON_FILE_PATH = "/storage/emulated/0/Podcasts/videopath.json"
+        private const val JSON_FILE_PATH = "/storage/emulated/0/Download/videopath.json"
+        private const val VIDEO_POSITION_KEY = "VIDEO_POSITION_KEY"
     }
 
     private lateinit var jsonFileReader: FileReaderHelper
+    private var videoPosition: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +36,7 @@ class MainActivity : ComponentActivity() {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     val videoUri by remember { jsonFileReader::videoUri }
                     // json içerisindeki yoldan videoyu oynat
-                    videoUri?.let { VideoPlayer(it) }
+                    videoUri?.let { VideoPlayer(it, videoPosition) { pos -> videoPosition = pos } }
                 }
             }
         }
@@ -53,7 +55,7 @@ class MainActivity : ComponentActivity() {
             Toast.makeText(this, "Json dosyası okunamadı", Toast.LENGTH_SHORT).show()
         }
     }
-// İzin isteme
+    // İzin isteme
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSION) {
@@ -64,11 +66,21 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-// Kumanda Tuşları
+    // Kumanda Tuşları
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (keyCode == KeyEvent.KEYCODE_HOME) {
             return true
         }
         return super.onKeyDown(keyCode, event)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(VIDEO_POSITION_KEY, videoPosition)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        videoPosition = savedInstanceState.getInt(VIDEO_POSITION_KEY, 0)
     }
 }

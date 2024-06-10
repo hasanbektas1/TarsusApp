@@ -1,7 +1,6 @@
 package com.tarsus.tarsusapp
 
 import android.net.Uri
-import android.util.Log
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonArray
@@ -28,7 +27,6 @@ class FileReaderHelper(private val filePath: String) {
         try {
             val file = File(filePath)
             if (!file.exists()) {
-                Log.e(TAG, "File does not exist: $filePath")
                 return false
             }
 
@@ -41,27 +39,22 @@ class FileReaderHelper(private val filePath: String) {
                     }
                     val jsonString = stringBuilder.toString()
                     val jsonElement = Json.parseToJsonElement(jsonString)
-                    Log.d(TAG, "JSON Content: $jsonString")
 
                     if (jsonElement is JsonObject) {
                         val videosArray = jsonElement["videos"]?.jsonArray
                         if (videosArray != null && videosArray.isNotEmpty()) {
                             val videoPath = videosArray[0].jsonPrimitive.content
                             videoUri = Uri.parse(videoPath)
-                            Log.d(TAG, "Video path found: $videoPath")
                             return true
                         } else {
-                            Log.e(TAG, "No valid video path found in JSON")
                             return false
                         }
                     } else {
-                        Log.e(TAG, "Invalid JSON format")
                         return false
                     }
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error reading JSON file", e)
             return false
         }
     }

@@ -10,7 +10,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 
 // Video oynatma
 @Composable
-fun VideoPlayer(videoUri: Uri) {
+fun VideoPlayer(videoUri: Uri, startPosition: Int, onPositionChanged: (Int) -> Unit) {
     val context = LocalContext.current
     AndroidView(factory = {
         VideoView(context).apply {
@@ -18,7 +18,10 @@ fun VideoPlayer(videoUri: Uri) {
             setOnCompletionListener {
                 seekTo(0)
             }
-            start()
+            setOnPreparedListener {
+                seekTo(startPosition)
+                start()
+            }
 
             setOnKeyListener { v, keyCode, event ->
                 if (event.action == KeyEvent.ACTION_DOWN) {
@@ -43,6 +46,12 @@ fun VideoPlayer(videoUri: Uri) {
                     }
                 } else {
                     false
+                }
+            }
+
+            setOnFocusChangeListener { _, hasFocus ->
+                if (!hasFocus) {
+                    onPositionChanged(currentPosition)
                 }
             }
 
