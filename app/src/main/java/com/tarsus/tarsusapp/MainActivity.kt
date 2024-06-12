@@ -29,7 +29,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Toast.makeText(this, "Hasan Bektaş, Özge Akıncı, Oğuzhan Çotur katkılarıyla", Toast.LENGTH_LONG).show()
 
         jsonFileReader = FileReaderHelper(JSON_FILE_PATH)
 
