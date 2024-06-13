@@ -21,8 +21,8 @@
     <application
         android:allowBackup="true"
         android:requestLegacyExternalStorage="true"
-        android:banner="@mipmap/ic_launcher"
-        android:icon="@mipmap/ic_launcher"
+        android:banner="@mipmap/tarsus_icon"
+        android:icon="@mipmap/tarsus_icon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/Theme.TarsusApp">
