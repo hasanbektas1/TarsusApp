@@ -30,22 +30,26 @@ class MainActivity : ComponentActivity() {
     private var currentVideoKey: String = "video1"
     private var videoUris: Map<String, String> = mapOf()
     private var videoPositions: MutableMap<String, Int> = mutableMapOf()
+    private var permissionsGranted: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         jsonFileReader = FileReaderHelper(JSON_FILE_PATH)
 
+        // Check permissions
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CODE_PERMISSION)
         } else {
-            readVideoPaths()
+            permissionsGranted = true
+            readVideoPathsAndStartPlayer()
         }
 
         setContent {
             TarsusAppTheme {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    if (videoUris.isNotEmpty()) {
+                    // Check permissions and videoUris before displaying the VideoPlayer
+                    if (permissionsGranted && videoUris.isNotEmpty()) {
                         val videoUri by remember { mutableStateOf(Uri.parse(videoUris[currentVideoKey])) }
                         videoUri?.let {
                             VideoPlayer(
@@ -59,24 +63,61 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun readVideoPaths() {
+    private fun readVideoPathsAndStartPlayer() {
         val paths = jsonFileReader.readVideoPathsFromJson()
         if (paths != null) {
             videoUris = paths
-            // Initialize video positions
             videoUris.keys.forEach { key ->
-                videoPositions[key] = 0 // Set initial position as 0 for each video
+                videoPositions[key] = 0
             }
+            updateTrVideo()
         } else {
             Toast.makeText(this, "Json dosyası okunamadı", Toast.LENGTH_SHORT).show()
         }
     }
 
+    private fun updateTrVideo() {
+        videoPositions[currentVideoKey] = 0
+        setContent {
+            TarsusAppTheme {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    if (permissionsGranted && videoUris.isNotEmpty()) {
+                        val videoUri by remember { mutableStateOf(Uri.parse(videoUris[currentVideoKey])) }
+                        videoUri?.let {
+                            VideoPlayer(
+                                it,
+                                videoPositions.getOrDefault(currentVideoKey, 0)
+                            ) { pos -> videoPositions[currentVideoKey] = pos }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private fun updateIngVideo() {
+        videoPositions[currentVideoKey] = 0
+        setContent {
+            TarsusAppTheme {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    if (permissionsGranted && videoUris.isNotEmpty()) {
+                        val videoUri by remember { mutableStateOf(Uri.parse(videoUris[currentVideoKey])) }
+                        videoUri?.let {
+                            VideoPlayer(
+                                it,
+                                videoPositions.getOrDefault(currentVideoKey, 0)
+                            ) { pos -> videoPositions[currentVideoKey] = pos }
+                        }
+                    }
+                }
+            }
+        }
+    }
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSION) {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                readVideoPaths()
+                permissionsGranted = true
+                readVideoPathsAndStartPlayer()
             } else {
                 Toast.makeText(this, "Depolama izni reddedildi", Toast.LENGTH_SHORT).show()
             }
@@ -87,58 +128,16 @@ class MainActivity : ComponentActivity() {
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
                 currentVideoKey = if (currentVideoKey == "video1") "video2" else "video1"
-                updateTrVideo() // Update the video player with the new currentVideoKey
+                updateTrVideo()
                 return true
             }
             KeyEvent.KEYCODE_DPAD_DOWN -> {
                 currentVideoKey = if (currentVideoKey == "video2") "video1" else "video2"
-                updateIngVideo() // Update the video player with the new currentVideoKey
+                updateIngVideo()
                 return true
             }
             else -> {
                 return super.onKeyDown(keyCode, event)
-            }
-        }
-    }
-
-    private fun updateTrVideo() {
-        // Reset the position to 0 when switching videos
-        videoPositions[currentVideoKey] = 0
-
-        setContent {
-            TarsusAppTheme {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    if (videoUris.isNotEmpty()) {
-                        val videoUri by remember { mutableStateOf(Uri.parse(videoUris[currentVideoKey])) }
-                        videoUri?.let {
-                            VideoPlayer(
-                                it,
-                                videoPositions.getOrDefault(currentVideoKey, 0)
-                            ) { pos -> videoPositions[currentVideoKey] = pos }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun updateIngVideo() {
-        // Reset the position to 0 when switching videos
-        videoPositions[currentVideoKey] = 0
-
-        setContent {
-            TarsusAppTheme {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    if (videoUris.isNotEmpty()) {
-                        val videoUri by remember { mutableStateOf(Uri.parse(videoUris[currentVideoKey])) }
-                        videoUri?.let {
-                            VideoPlayer(
-                                it,
-                                videoPositions.getOrDefault(currentVideoKey, 0)
-                            ) { pos -> videoPositions[currentVideoKey] = pos }
-                        }
-                    }
-                }
             }
         }
     }
