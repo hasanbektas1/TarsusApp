@@ -127,13 +127,15 @@ class MainActivity : ComponentActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_DPAD_UP -> {
-                currentVideoKey = if (currentVideoKey == "video1") "video2" else "video2"
-                updateTrVideo()
-                return true
-            }
-            KeyEvent.KEYCODE_DPAD_DOWN -> {
                 currentVideoKey = if (currentVideoKey == "video2") "video1" else "video1"
                 updateIngVideo()
+                return true
+
+
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                currentVideoKey = if (currentVideoKey == "video1") "video2" else "video2"
+                updateTrVideo()
                 return true
             }
             KeyEvent.KEYCODE_BACK -> {
